@@ -59,9 +59,8 @@ function Invoke-BitsTransfer {
                         -ErrorAction Stop
 
 
-                    # Initialize progress calculation
-
-                    $startTime = Get-Date
+                    # Get resulting local name of download
+                    $localName = $bitsJob.FileList[0].LocalName
 
                     # Initialize progress bar parameters
                     $progress = @{
@@ -77,10 +76,9 @@ function Invoke-BitsTransfer {
                     $jobs.Add(@{
                         bitsJob = $bitsJob
                         progress = $progress
+                        startTime = (Get-Date)
                     }) > $null
 
-                    # Get resulting local name of download
-                    $localName = $bitsJob.FileList[0].LocalName
                     Write-Verbose "Local name of downloaded file: $localName"
 
                     # Emit the file name to the pipeline
@@ -117,7 +115,7 @@ function Invoke-BitsTransfer {
                 # the seconds passed in total.
                 $secondsPassed = `
                     (
-                        New-TimeSpan -Start $startTime -End (Get-Date)
+                        New-TimeSpan -Start $job.startTime -End (Get-Date)
                     ).TotalSeconds
 
                 # The progress bar needs the percent complete as a number
