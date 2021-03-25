@@ -95,13 +95,11 @@ function Invoke-BitsTransfer {
     }
     END {
         # While the BITS jobs are not finished, calculate and write progress
-        while ((
-            $jobs.bitsJob | 
-            Where-Object {$PSItem.JobState -ne 'Transferred'}
-        ).Count -gt 0 ) {
+        while ($jobs.Count -gt 0) {
             foreach ($job in $jobs) {
                 # First get the BITS job and the progress
                 $bitsJob = $job.bitsJob
+
                 $progress = $job.progress
 
                 #region Calculate progress
@@ -165,14 +163,17 @@ function Invoke-BitsTransfer {
                 if ($job.bitsJob.JobState -eq 'Transferred') {
                     # Hide progress bar by calling it with the Completed switch
                     Write-Progress @progress -Completed
+                    $bitsJob | Complete-BitsTransfer -Confirm:$false
                 }
             }
 
+            # Remove completed jobs
+
+            $jobs = $jobs | Where-Object { $PSItem.bitsJob.JobState }
+            
             # Sleep for 1 second to smoothen the display of the downloaded
             # bytes.
             Start-Sleep -Seconds 1         
         }
-        # Complete the BITS transfers to remove it from the queue
-        $jobs.bitsJob | Complete-BitsTransfer -Confirm:$false
     }
 }
